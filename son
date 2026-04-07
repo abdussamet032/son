@@ -1,0 +1,56 @@
+#!/bin/bash
+# son — Son değiştirilen projeleri göster, seçileni iTerm'de 3 split pane ile aç
+# Kullanım: son → tüm projeler listelenir (son değişen en üstte), fzf ile ara/seç
+
+DEV_ROOT="$HOME/abdussametalisar/dev/github.com"
+
+# Tüm projeleri tarihle topla
+projects=()
+while IFS= read -r -d '' dir; do
+  if [[ -d "$dir/.git" ]]; then
+    ts=$(git -C "$dir" log -1 --format=%ct 2>/dev/null || stat -f %m "$dir")
+  else
+    ts=$(stat -f %m "$dir")
+  fi
+  [[ -n "$ts" ]] && projects+=("$ts|$dir")
+done < <(find "$DEV_ROOT" -mindepth 2 -maxdepth 2 -type d -print0)
+
+# Tarihe göre sırala
+sorted=$(printf '%s\n' "${projects[@]}" | sort -t'|' -k1 -rn)
+
+selected=$(echo "$sorted" \
+  | while IFS='|' read -r ts path; do
+      org=$(basename "$(dirname "$path")")
+      name=$(basename "$path")
+      date_str=$(date -r "$ts" "+%d %b %H:%M")
+      printf "%s/%s  [%s]\t%s\n" "$org" "$name" "$date_str" "$path"
+    done \
+  | fzf --prompt="Proje seç > " --height=40% --no-preview --delimiter='\t' --with-nth=1 \
+  | cut -f2)
+
+[[ -z "$selected" ]] && exit 0
+
+# iTerm'de 1 pencere, 3 split pane aç
+osascript <<APPLESCRIPT
+tell application "iTerm"
+  activate
+  set newWindow to (create window with default profile)
+  -- Pencereyi büyük aç (ekranın ortasında, geniş)
+  set bounds of newWindow to {100, 50, 1700, 1000}
+  tell current session of newWindow
+    write text "cd '${selected}' && clear"
+  end tell
+  tell current session of newWindow
+    set sp2 to (split vertically with default profile)
+    tell sp2
+      write text "cd '${selected}' && clear"
+    end tell
+  end tell
+  tell current session of newWindow
+    set sp3 to (split horizontally with default profile)
+    tell sp3
+      write text "cd '${selected}' && clear"
+    end tell
+  end tell
+end tell
+APPLESCRIPT
