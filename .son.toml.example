@@ -1,0 +1,28 @@
+# .son.toml — Per-project configuration for son
+# Place this file in your project root to customize workspace behavior.
+
+# Terminal to use for this project (overrides global config)
+# Options: iterm, tmux, wezterm
+# terminal = "tmux"
+
+# Pane layout preset
+# Options: single, split, 3-pane, grid
+layout = "3-pane"
+
+# Editor to open automatically
+# Options: code, cursor, zed, nvim, vim, subl, idea
+# editor = "code"
+
+# Pin this project to the top of the list
+# pin = true
+
+# Startup hooks — commands to run in specific panes on open
+# Pane numbering: 1 = main (left), 2 = top-right, 3 = bottom-right, 4 = bottom-left (grid only)
+
+# [[hooks]]
+# pane = 2
+# command = "npm run dev"
+
+# [[hooks]]
+# pane = 3
+# command = "npm run test -- --watch"

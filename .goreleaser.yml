@@ -1,0 +1,45 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - main: .
+    binary: son
+    ldflags:
+      - -s -w -X github.com/abdussamet032/son/internal/config.Version={{.Version}}
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - format: tar.gz
+    name_template: "son_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+brews:
+  - repository:
+      owner: abdussamet032
+      name: homebrew-tap
+    name: son
+    homepage: "https://github.com/abdussamet032/son"
+    description: "Developer workspace launcher — open the right repo in the right workspace"
+    license: "MIT"
+    install: |
+      bin.install "son"
+    test: |
+      system "#{bin}/son", "version"
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
