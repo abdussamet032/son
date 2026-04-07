@@ -92,9 +92,9 @@ function Hero() {
 
         {/* Headline */}
         <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] mb-6 animate-fade-in-up">
-          Open the right repo
+          Project Switcher CLI
           <br />
-          in the right workspace.
+          for Terminal Workspaces.
           <br />
           <span className="gradient-text">Two keystrokes.</span>
         </h1>
@@ -104,9 +104,9 @@ function Hero() {
           className="text-lg sm:text-xl text-text-muted max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up"
           style={{ animationDelay: "0.15s" }}
         >
-          <span className="font-mono text-cyan font-medium">son</span> discovers
-          your projects, sorts them by frecency, lets you fuzzy-search with fzf,
-          and opens a ready-made split-pane workspace in your terminal of choice.
+          <span className="font-mono text-cyan font-medium">son</span> finds your recent repos,
+          fuzzy-searches them with fzf, and opens ready-made terminal workspaces
+          in tmux, WezTerm, or iTerm2 with split panes, editors, and startup hooks.
         </p>
 
         {/* Install command */}
@@ -413,13 +413,13 @@ function Features() {
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-            Everything you need.
+            Search Projects with fzf
             <br />
-            <span className="text-text-muted">Nothing you don&apos;t.</span>
+            <span className="text-text-muted">and Frecency Ranking.</span>
           </h2>
           <p className="text-text-muted max-w-xl mx-auto">
-            Designed for developers who value their time. Every feature exists to
-            get you from terminal to productive faster.
+            Launch split-pane workspaces with editors and startup hooks.
+            Designed for developers who value their time.
           </p>
         </div>
 
@@ -481,11 +481,11 @@ function HowItWorks() {
       <div className="max-w-5xl mx-auto px-6 relative">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-            Three steps. That&apos;s it.
+            Switch Between Projects in Terminal — Fast.
           </h2>
           <p className="text-text-muted max-w-md mx-auto">
-            From installation to a fully configured workspace in under 60
-            seconds.
+            Install son on macOS or Linux. From zero to a fully configured
+            workspace in under 60 seconds.
           </p>
         </div>
 
@@ -565,10 +565,11 @@ function Comparison() {
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-            How does <span className="gradient-text">son</span> compare?
+            son vs tmuxinator, zoxide, and Manual Setup
           </h2>
           <p className="text-text-muted max-w-lg mx-auto">
-            Existing tools solve pieces of the puzzle. son is the whole picture.
+            Looking for a tmuxinator alternative? See how son compares to existing
+            terminal session managers and directory jumpers.
           </p>
         </div>
 
@@ -664,11 +665,11 @@ function Install() {
 
       <div className="max-w-3xl mx-auto px-6 text-center relative">
         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-          Ready to stop <code className="font-mono text-text-muted">cd</code>-ing around?
+          Install son on macOS and Linux
         </h2>
         <p className="text-text-muted mb-12 max-w-md mx-auto">
-          Install son in one command. Start using it immediately. No config
-          files, no setup wizard, no tutorials.
+          One command. Start switching between projects immediately. No config
+          files, no setup wizard, no tutorials needed.
         </p>
 
         <div className="space-y-4 max-w-xl mx-auto">
@@ -728,42 +729,63 @@ function Install() {
 /* ------------------------------------------------------------------ */
 function Footer() {
   return (
-    <footer className="border-t border-white/5 py-8">
-      <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-sm text-text-muted">
-          <div className="w-5 h-5 rounded bg-gradient-to-br from-cyan to-blue flex items-center justify-center text-black font-bold text-[10px] font-mono">
-            S
+    <footer className="border-t border-white/5 py-12">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          <div>
+            <h4 className="text-sm font-semibold mb-3">Compare</h4>
+            <ul className="space-y-2 text-sm text-text-dim">
+              <li><a href="/compare/tmuxinator" className="hover:text-text-muted transition-colors">son vs tmuxinator</a></li>
+              <li><a href="/compare/zoxide" className="hover:text-text-muted transition-colors">son vs zoxide</a></li>
+              <li><a href="/compare/sesh" className="hover:text-text-muted transition-colors">son vs sesh</a></li>
+              <li><a href="/compare/tmuxp" className="hover:text-text-muted transition-colors">son vs tmuxp</a></li>
+            </ul>
           </div>
-          <span>
-            son &middot; MIT License &middot; Built with Go
-          </span>
+          <div>
+            <h4 className="text-sm font-semibold mb-3">Guides</h4>
+            <ul className="space-y-2 text-sm text-text-dim">
+              <li><a href="/guides/switch-between-projects-in-terminal" className="hover:text-text-muted transition-colors">Switch Between Projects</a></li>
+              <li><a href="/guides/manage-multiple-git-repos-terminal" className="hover:text-text-muted transition-colors">Manage Multiple Repos</a></li>
+              <li><a href="/guides/open-project-in-tmux-split-panes" className="hover:text-text-muted transition-colors">tmux Split Panes</a></li>
+              <li><a href="/guides/fzf-project-switcher" className="hover:text-text-muted transition-colors">fzf Project Switcher</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold mb-3">Resources</h4>
+            <ul className="space-y-2 text-sm text-text-dim">
+              <li><a href="https://github.com/abdussamet032/son" target="_blank" rel="noopener noreferrer" className="hover:text-text-muted transition-colors">GitHub</a></li>
+              <li><a href="https://github.com/abdussamet032/son/releases" target="_blank" rel="noopener noreferrer" className="hover:text-text-muted transition-colors">Releases</a></li>
+              <li><a href="https://github.com/abdussamet032/son/issues" target="_blank" rel="noopener noreferrer" className="hover:text-text-muted transition-colors">Issues</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold mb-3">Install</h4>
+            <ul className="space-y-2 text-sm text-text-dim">
+              <li><code className="text-xs">brew install abdussamet032/tap/son</code></li>
+              <li><code className="text-xs">go install github.com/abdussamet032/son@latest</code></li>
+            </ul>
+          </div>
         </div>
-        <div className="flex items-center gap-6 text-sm text-text-dim">
-          <a
-            href="https://github.com/abdussamet032/son"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-text-muted transition-colors flex items-center gap-1.5"
-          >
-            <GitHubIcon className="w-4 h-4" />
-            GitHub
-          </a>
-          <a
-            href="https://github.com/abdussamet032/son/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-text-muted transition-colors"
-          >
-            Issues
-          </a>
-          <a
-            href="https://github.com/abdussamet032/son/releases"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-text-muted transition-colors"
-          >
-            Releases
-          </a>
+        <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-sm text-text-muted">
+            <div className="w-5 h-5 rounded bg-gradient-to-br from-cyan to-blue flex items-center justify-center text-black font-bold text-[10px] font-mono">
+              S
+            </div>
+            <span>
+              son &middot; MIT License &middot; Built with Go
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-text-dim">
+            <a
+              href="https://github.com/abdussamet032/son"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-text-muted transition-colors flex items-center gap-1.5"
+            >
+              <GitHubIcon className="w-4 h-4" />
+              GitHub
+            </a>
+          </div>
         </div>
       </div>
     </footer>
