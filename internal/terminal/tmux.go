@@ -18,7 +18,7 @@ func (t *Tmux) Available() bool {
 	return hasCommand("tmux")
 }
 
-func (t *Tmux) Open(projectPath string, l layout.Layout, hooks []config.HookConfig) error {
+func (t *Tmux) Open(projectPath string, projectName string, l layout.Layout, hooks []config.HookConfig) error {
 	sessionName := sanitizeSessionName(projectPath)
 
 	// Check if session exists
@@ -33,6 +33,9 @@ func (t *Tmux) Open(projectPath string, l layout.Layout, hooks []config.HookConf
 	if err := newCmd.Run(); err != nil {
 		return fmt.Errorf("failed to create tmux session: %w", err)
 	}
+
+	// Set window name to project name
+	exec.Command("tmux", "rename-window", "-t", sessionName, projectName).Run()
 
 	// Run hook for first pane
 	hook0 := hookForPane(hooks, 1)

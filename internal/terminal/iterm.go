@@ -18,20 +18,21 @@ func (t *ITerm) Available() bool {
 	return runtime.GOOS == "darwin" && hasCommand("osascript")
 }
 
-func (t *ITerm) Open(projectPath string, l layout.Layout, hooks []config.HookConfig) error {
-	script := buildAppleScript(projectPath, l, hooks)
+func (t *ITerm) Open(projectPath string, projectName string, l layout.Layout, hooks []config.HookConfig) error {
+	script := buildAppleScript(projectPath, projectName, l, hooks)
 	cmd := exec.Command("osascript", "-e", script)
 	return cmd.Run()
 }
 
-func buildAppleScript(projectPath string, l layout.Layout, hooks []config.HookConfig) string {
+func buildAppleScript(projectPath string, projectName string, l layout.Layout, hooks []config.HookConfig) string {
 	var sb strings.Builder
 
-	sb.WriteString(`tell application "iTerm"
+	sb.WriteString(fmt.Sprintf(`tell application "iTerm"
   activate
   set newWindow to (create window with default profile)
   set bounds of newWindow to {100, 50, 1700, 1000}
-`)
+  set name of current tab of newWindow to "%s"
+`, projectName))
 
 	paneCount := len(l.Panes)
 

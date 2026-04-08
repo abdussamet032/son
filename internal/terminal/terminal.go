@@ -12,7 +12,7 @@ import (
 type Terminal interface {
 	Name() string
 	Available() bool
-	Open(projectPath string, layout layout.Layout, hooks []config.HookConfig) error
+	Open(projectPath string, projectName string, layout layout.Layout, hooks []config.HookConfig) error
 }
 
 func Get(name string) (Terminal, error) {

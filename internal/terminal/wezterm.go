@@ -18,7 +18,7 @@ func (t *WezTerm) Available() bool {
 	return hasCommand("wezterm")
 }
 
-func (t *WezTerm) Open(projectPath string, l layout.Layout, hooks []config.HookConfig) error {
+func (t *WezTerm) Open(projectPath string, projectName string, l layout.Layout, hooks []config.HookConfig) error {
 	// Spawn initial pane
 	out, err := exec.Command("wezterm", "cli", "spawn", "--cwd", projectPath).Output()
 	if err != nil {
@@ -72,6 +72,9 @@ func (t *WezTerm) Open(projectPath string, l layout.Layout, hooks []config.HookC
 			}
 		}
 	}
+
+	// Set tab title to project name
+	exec.Command("wezterm", "cli", "set-tab-title", projectName, "--pane-id", firstPaneID).Run()
 
 	// Activate the first pane
 	exec.Command("wezterm", "cli", "activate-pane", "--pane-id", firstPaneID).Run()
