@@ -27,25 +27,27 @@ func (t *ITerm) Open(projectPath string, projectName string, l layout.Layout, ho
 func buildAppleScript(projectPath string, projectName string, l layout.Layout, hooks []config.HookConfig) string {
 	var sb strings.Builder
 
-	sb.WriteString(fmt.Sprintf(`tell application "iTerm"
+	escapedName := strings.ReplaceAll(projectName, `"`, `\"`)
+
+	sb.WriteString(`tell application "iTerm"
   activate
   set newWindow to (create window with default profile)
   set bounds of newWindow to {100, 50, 1700, 1000}
-  set name of current tab of newWindow to "%s"
-`, projectName))
+`)
 
 	paneCount := len(l.Panes)
 
-	// First pane (always exists)
+	// First pane (always exists) — also set session name for tab title
 	hook0 := hookForPane(hooks, 1)
 	cmd0 := fmt.Sprintf("cd '%s' && clear", projectPath)
 	if hook0 != "" {
 		cmd0 = fmt.Sprintf("cd '%s' && clear && %s", projectPath, hook0)
 	}
 	sb.WriteString(fmt.Sprintf(`  tell current session of newWindow
+    set name to "%s"
     write text "%s"
   end tell
-`, cmd0))
+`, escapedName, cmd0))
 
 	if paneCount >= 2 {
 		// Split vertically for second pane
