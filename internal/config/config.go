@@ -126,6 +126,28 @@ func LoadProjectConfig(projectPath string) (*ProjectConfig, error) {
 	return &pc, nil
 }
 
+func Save(cfg Config) error {
+	dir := ConfigDir()
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+
+	path := ConfigPath()
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	// Write with readable formatting
+	fmt.Fprintln(f, `# son — workspace launcher configuration`)
+	fmt.Fprintln(f, `# Run 'son setup' to edit interactively`)
+	fmt.Fprintln(f)
+
+	enc := toml.NewEncoder(f)
+	return enc.Encode(cfg)
+}
+
 func Init() error {
 	dir := ConfigDir()
 	if err := os.MkdirAll(dir, 0o755); err != nil {

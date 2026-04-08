@@ -14,6 +14,7 @@ import (
 	"github.com/abdussamet032/son/internal/ranking"
 	"github.com/abdussamet032/son/internal/selector"
 	"github.com/abdussamet032/son/internal/terminal"
+	"github.com/abdussamet032/son/internal/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -45,6 +46,7 @@ Supports iTerm2, tmux, and WezTerm.`,
 	root.PersistentFlags().StringVarP(&flagSort, "sort", "s", "", "Sort method (frecency, mtime, alpha)")
 
 	root.AddCommand(newInitCmd())
+	root.AddCommand(newSetupCmd())
 	root.AddCommand(newDoctorCmd())
 	root.AddCommand(newListCmd())
 	root.AddCommand(newPinCmd())
@@ -170,6 +172,20 @@ func newInitCmd() *cobra.Command {
 			fmt.Printf("Config created at %s\n", config.ConfigPath())
 			fmt.Println("Edit it to add your project roots.")
 			return nil
+		},
+	}
+}
+
+func newSetupCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "setup",
+		Short: "Interactive configuration — edit settings with a TUI form",
+		Long: `Open an interactive form to configure son.
+
+Lets you easily change terminal, editor, layout, project directories,
+sorting method, and appearance settings. Changes are saved to config.toml.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return tui.RunSetup()
 		},
 	}
 }
