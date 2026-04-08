@@ -8,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
       },
     ],
-    sitemap: "https://website-vert-five-63.vercel.app/sitemap.xml",
+    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || "https://getson.is-a.dev"}/sitemap.xml`,
   };
 }
