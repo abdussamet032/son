@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://getson.is-a.dev";
+const BASE_URL = "https://website-vert-five-63.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
