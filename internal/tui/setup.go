@@ -49,6 +49,12 @@ func RunSetup() error {
 		}
 	}
 
+	// --- Open Mode ---
+	openModeOptions := []huh.Option[string]{
+		huh.NewOption("Yeni pencere — projeyi yeni terminalde aç", "new_window"),
+		huh.NewOption("Aynı pencere — mevcut terminalde aç", "same_window"),
+	}
+
 	// --- Layout ---
 	layoutOptions := make([]huh.Option[string], 0, len(layout.Names()))
 	for _, name := range layout.Names() {
@@ -65,10 +71,6 @@ func RunSetup() error {
 
 	// --- Roots (as comma-separated text) ---
 	rootsStr := rootsToString(cfg.Roots)
-
-	// --- Appearance ---
-	showPath := cfg.Appearance.ShowPath
-	dateFormat := cfg.Appearance.DateFormat
 
 	// Build the form
 	form := huh.NewForm(
@@ -90,6 +92,12 @@ func RunSetup() error {
 				Description("Proje açıldığında hangi editör başlasın?").
 				Options(editorOptions...).
 				Value(&cfg.DefaultEditor),
+
+			huh.NewSelect[string]().
+				Title("Proje Açılış").
+				Description("Proje aynı pencerede mi yoksa yeni pencerede mi açılsın?").
+				Options(openModeOptions...).
+				Value(&cfg.OpenMode),
 		).Title("Temel Ayarlar"),
 
 		huh.NewGroup(
@@ -114,18 +122,6 @@ func RunSetup() error {
 				CharLimit(500),
 		).Title("Proje Klasörleri"),
 
-		huh.NewGroup(
-			huh.NewConfirm().
-				Title("Tam yolu göster").
-				Description("Proje listesinde dosya yolunu göster?").
-				Value(&showPath),
-
-			huh.NewInput().
-				Title("Tarih formatı").
-				Description("Go time format (örn: 02 Jan 15:04)").
-				Value(&dateFormat),
-		).Title("Görünüm"),
-
 	).WithTheme(huh.ThemeDracula())
 
 	err = form.Run()
@@ -141,8 +137,6 @@ func RunSetup() error {
 	}
 
 	cfg.Roots = parsedRoots
-	cfg.Appearance.ShowPath = showPath
-	cfg.Appearance.DateFormat = dateFormat
 
 	// Save
 	if err := config.Save(cfg); err != nil {
@@ -244,6 +238,17 @@ func editorLabel(name string) string {
 	}
 }
 
+func openModeLabel(name string) string {
+	switch name {
+	case "same_window":
+		return "Aynı pencere"
+	case "new_window":
+		return "Yeni pencere"
+	default:
+		return name
+	}
+}
+
 func layoutLabel(name string) string {
 	switch name {
 	case "single":
@@ -261,14 +266,15 @@ func layoutLabel(name string) string {
 
 func printSummary(cfg config.Config) {
 	fmt.Println()
-	fmt.Printf("  Terminal:  %s\n", cfg.DefaultTerminal)
+	fmt.Printf("  Terminal:   %s\n", cfg.DefaultTerminal)
 	if cfg.DefaultEditor != "" {
-		fmt.Printf("  Editör:   %s\n", editorLabel(cfg.DefaultEditor))
+		fmt.Printf("  Editör:    %s\n", editorLabel(cfg.DefaultEditor))
 	} else {
-		fmt.Printf("  Editör:   (yok)\n")
+		fmt.Printf("  Editör:    (yok)\n")
 	}
-	fmt.Printf("  Layout:   %s\n", layoutLabel(cfg.DefaultLayout))
-	fmt.Printf("  Sıralama: %s\n", cfg.Sorting.Method)
+	fmt.Printf("  Açılış:    %s\n", openModeLabel(cfg.OpenMode))
+	fmt.Printf("  Layout:    %s\n", layoutLabel(cfg.DefaultLayout))
+	fmt.Printf("  Sıralama:  %s\n", cfg.Sorting.Method)
 	fmt.Printf("  Klasörler:\n")
 	for _, r := range cfg.Roots {
 		fmt.Printf("    %s (derinlik: %d)\n", contractHome(r.Path), r.Depth)

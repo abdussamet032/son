@@ -18,7 +18,7 @@ func (t *WezTerm) Available() bool {
 	return hasCommand("wezterm")
 }
 
-func (t *WezTerm) Open(projectPath string, projectName string, l layout.Layout, hooks []config.HookConfig) error {
+func (t *WezTerm) Open(projectPath string, projectName string, l layout.Layout, hooks []config.HookConfig, openMode string) error {
 	// Spawn initial pane
 	out, err := exec.Command("wezterm", "cli", "spawn", "--cwd", projectPath).Output()
 	if err != nil {

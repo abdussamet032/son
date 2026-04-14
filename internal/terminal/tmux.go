@@ -18,7 +18,7 @@ func (t *Tmux) Available() bool {
 	return hasCommand("tmux")
 }
 
-func (t *Tmux) Open(projectPath string, projectName string, l layout.Layout, hooks []config.HookConfig) error {
+func (t *Tmux) Open(projectPath string, projectName string, l layout.Layout, hooks []config.HookConfig, openMode string) error {
 	sessionName := sanitizeSessionName(projectPath)
 
 	// Check if session exists

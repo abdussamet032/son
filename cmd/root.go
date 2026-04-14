@@ -158,7 +158,7 @@ func runDefault(cmd *cobra.Command, args []string) error {
 
 	// Open terminal
 	fmt.Printf("Opening %s in %s (%s layout)...\n", project.Name, term.Name(), layoutName)
-	return term.Open(project.Path, project.Name, l, hookList)
+	return term.Open(project.Path, project.Name, l, hookList, cfg.OpenMode)
 }
 
 func newInitCmd() *cobra.Command {

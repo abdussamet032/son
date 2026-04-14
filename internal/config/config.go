@@ -31,6 +31,7 @@ type Config struct {
 	DefaultTerminal string           `toml:"default_terminal"` // iterm, tmux, wezterm, auto
 	DefaultEditor   string           `toml:"default_editor"`   // code, cursor, zed, nvim, vim
 	DefaultLayout   string           `toml:"default_layout"`   // single, split, 3-pane, grid
+	OpenMode        string           `toml:"open_mode"`        // same_window, new_window
 	Roots           []Root           `toml:"roots"`
 	Sorting         SortingConfig    `toml:"sorting"`
 	Appearance      AppearanceConfig `toml:"appearance"`
@@ -55,6 +56,7 @@ func DefaultConfig() Config {
 		DefaultTerminal: "auto",
 		DefaultEditor:   "",
 		DefaultLayout:   "3-pane",
+		OpenMode:        "same_window",
 		Roots: []Root{
 			{Path: filepath.Join(home, "dev"), Depth: 2},
 		},

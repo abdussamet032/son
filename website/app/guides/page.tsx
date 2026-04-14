@@ -59,6 +59,24 @@ const guides = [
     readTime: "8 min read",
     color: "from-cyan to-purple",
   },
+  {
+    slug: "son-setup-command",
+    title: "Quick Setup with son setup — Interactive Terminal Configuration",
+    description:
+      "Skip the config file. Run son setup to configure your dev directories, preferred terminal, editor, and layout preferences via an interactive TUI.",
+    keywords: ["son setup", "configuration", "interactive", "tui"],
+    readTime: "3 min read",
+    color: "from-green to-cyan",
+  },
+  {
+    slug: "terminal-window-titles",
+    title: "Automate Terminal Window Titles to Show Project Names",
+    description:
+      "Learn how son automatically sets your terminal window and tab titles to match the project you're working in — and why it makes finding the right terminal effortless.",
+    keywords: ["window titles", "iterm2", "tmux", "wezterm", "tab titles"],
+    readTime: "4 min read",
+    color: "from-yellow to-green",
+  },
 ];
 
 export default function GuidesIndex() {

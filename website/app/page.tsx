@@ -406,6 +406,20 @@ function Features() {
         "Auto-run commands per project. Start dev servers, set env vars, activate venvs. All from .son.toml.",
       color: "text-cyan",
     },
+    {
+      icon: <ZapIcon />,
+      title: "Interactive Setup",
+      description:
+        "Run son setup to configure everything via an interactive TUI. Set dev directories, default terminal, preferred editor — no config files needed.",
+      color: "text-green",
+    },
+    {
+      icon: <TerminalIcon />,
+      title: "Smart Window Titles",
+      description:
+        "Automatically sets terminal window and tab titles to your project name. Find the right terminal instantly, even with many tabs open.",
+      color: "text-blue",
+    },
   ];
 
   return (
