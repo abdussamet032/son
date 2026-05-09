@@ -49,6 +49,7 @@ Supports iTerm2, tmux, and WezTerm.`,
 	root.AddCommand(newSetupCmd())
 	root.AddCommand(newDoctorCmd())
 	root.AddCommand(newListCmd())
+	root.AddCommand(newPsCmd())
 	root.AddCommand(newPinCmd())
 	root.AddCommand(newUnpinCmd())
 	root.AddCommand(newConfigCmd())
