@@ -70,6 +70,7 @@ const jsonLd = {
     "Editor integration",
     "Startup hooks",
     "Per-project configuration",
+    "Service tracking (son ps)",
   ],
 };
 

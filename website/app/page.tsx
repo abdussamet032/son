@@ -420,6 +420,13 @@ function Features() {
         "Automatically sets terminal window and tab titles to your project name. Find the right terminal instantly, even with many tabs open.",
       color: "text-blue",
     },
+    {
+      icon: <ActivityIcon />,
+      title: "Service Tracker",
+      description:
+        "Run son ps to list every dev server and Docker container tied to your projects, then stop the ones you don't need with one keystroke.",
+      color: "text-purple",
+    },
   ];
 
   return (
@@ -964,6 +971,22 @@ function CodeIcon() {
     >
       <polyline points="16 18 22 12 16 6" />
       <polyline points="8 6 2 12 8 18" />
+    </svg>
+  );
+}
+
+function ActivityIcon() {
+  return (
+    <svg
+      className="w-5 h-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
     </svg>
   );
 }
