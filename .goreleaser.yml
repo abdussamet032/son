@@ -17,13 +17,15 @@ builds:
       - arm64
 
 archives:
-  - format: tar.gz
+  - formats: [tar.gz]
     name_template: "son_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
 brews:
   - repository:
       owner: abdussamet032
       name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
     name: son
     homepage: "https://github.com/abdussamet032/son"
     description: "Developer workspace launcher — open the right repo in the right workspace"
@@ -32,6 +34,10 @@ brews:
       bin.install "son"
     test: |
       system "#{bin}/son", "version"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "son {{ .Tag }}"
 
 checksum:
   name_template: "checksums.txt"

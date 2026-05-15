@@ -2,22 +2,55 @@
 
 Yeni bir özellik eklediğinde, bu özellik canlıya 3 yerde çıkar: **GitHub**, **Homebrew** ve **Website**.
 
+GitHub + Homebrew artık tamamen otomatik — sadece tag push'la, CI gerisini yapar.
+
 ---
 
 ## Hızlı Özet (TL;DR)
 
 ```bash
-# 1. Yeni özellik geliştir, commit at
+# 1. Yeni özellik geliştir, commit at, push'la
 git add . && git commit -m "feat: my new feature"
+git push origin main
 
-# 2. Yeni tag oluştur (HEAD'deki commit'e)
+# 2. Tag at ve push'la — GitHub Actions otomatik release yapar
 git tag -a v1.x.x -m "v1.x.x"
-
-# 3. Tag'i GitHub'a push et
 git push origin v1.x.x
+```
 
-# 4. GoReleaser ile her şeyi yayınla
-goreleaser release --clean
+CI (`.github/workflows/release.yml`) tag push'unda şunları yapar:
+- Binary'leri build eder (darwin/linux × amd64/arm64)
+- GitHub Release oluşturur, binary'leri yükler
+- `homebrew-tap` repo'sunda `Formula/son.rb`'yi yeni versiyona günceller
+
+Birkaç dakika sonra `brew upgrade abdussamet032/tap/son` çalışır.
+
+---
+
+## İlk Kurulum (Tek Sefer)
+
+CI'nin `homebrew-tap` repo'suna push edebilmesi için Personal Access Token gerek:
+
+1. https://github.com/settings/tokens/new adresinden yeni classic token oluştur
+   - Note: `goreleaser homebrew tap`
+   - Scope: sadece `repo`
+   - Expiration: No expiration (veya uzun süre)
+2. Token'ı `son` repo'suna secret olarak ekle:
+   ```bash
+   gh secret set HOMEBREW_TAP_GITHUB_TOKEN --repo abdussamet032/son
+   # prompt'a token'ı yapıştır
+   ```
+
+Bu yapıldıktan sonra tüm tag push'lar otomatik çalışır.
+
+---
+
+## Lokal Release (Acil Durum)
+
+CI çalışmıyorsa veya hemen test etmen gerekiyorsa:
+
+```bash
+make release   # gh auth token'ı otomatik kullanır
 ```
 
 ---
@@ -72,53 +105,16 @@ git push origin v1.x.x -f
 git push origin v1.x.x
 ```
 
-### 4. GoReleaser Çalıştır
+### 4. CI Otomatik Çalışır
 
-```bash
-# GITHUB_TOKEN environment variable gerekli
-# gh auth login yapıldıysa otomatik kullanır
+`v1.x.x` tag'i push edildiği anda `.github/workflows/release.yml` tetiklenir ve şunları yapar:
+- Binary'leri build eder (darwin/linux × amd64/arm64)
+- GitHub Release oluşturur, binary'leri yükler, checksums hesaplar
+- `homebrew-tap` repo'sundaki `Formula/son.rb`'yi yeni versiyona günceller
 
-goreleaser release --clean
-```
+İlerleyişi izle: https://github.com/abdussamet032/son/actions
 
-Bu komut şunları yapar:
-- Binary'leri build eder (darwin/amd64, darwin/arm64, linux/amd64, linux/arm64)
-- GitHub Release oluşturur ve binary'leri yükler
-- Homebrew formula oluşturur (`dist/homebrew/son.rb`)
-- Checksum hesaplar
-
-**Eğer GitHub API hata verirse** (502, 500 gibi geçici hatalar):
-```bash
-# Binary'leri build et, yayınlama
-goreleaser release --clean --skip=publish
-
-# Sonra binary'leri manuel yükle
-gh release upload v1.x.x dist/son_1.x.x_darwin_amd64.tar.gz --repo abdussamet032/son
-gh release upload v1.x.x dist/son_1.x.x_darwin_arm64.tar.gz --repo abdussamet032/son
-gh release upload v1.x.x dist/son_1.x.x_linux_amd64.tar.gz --repo abdussamet032/son
-gh release upload v1.x.x dist/son_1.x.x_linux_arm64.tar.gz --repo abdussamet032/son
-gh release upload v1.x.x dist/checksums.txt --repo abdussamet032/son
-```
-
-### 5. Homebrew Tap'ini Güncelle
-
-GoReleaser homebrew formula'yı `dist/homebrew/son.rb` dosyasına yazar. Bu dosyayı `homebrew-tap` reposuna pushla:
-
-```bash
-# homebrew-tap reposunu çek (yoksa clone et)
-gh repo clone abdussamet032/homebrew-tap /tmp/homebrew-tap
-
-# Formula'yı kopyala
-cp dist/homebrew/son.rb /tmp/homebrew-tap/Formula/son.rb
-
-# Commit ve push
-cd /tmp/homebrew-tap
-git add Formula/son.rb
-git commit -m "son v1.x.x"
-git push
-```
-
-### 6. Website Güncellemeleri
+### 5. Website Güncellemeleri
 
 Yeni özellik website'de gösterilecekse:
 
@@ -165,29 +161,19 @@ vercel --prod
 
 ---
 
-## Örnek: v1.3.0 Yayınlama
+## Örnek: v1.4.0 Yayınlama
 
 ```bash
-# 1. Kodu commit et
+# 1. Kodu commit et ve push'la
 git add .
 git commit -m "feat: add workspace templates"
+git push origin main
 
-# 2. Tag oluştur
-git tag -a v1.3.0 -m "v1.3.0 — workspace templates"
+# 2. Tag oluştur ve push'la — CI gerisini yapar
+git tag -a v1.4.0 -m "v1.4.0 — workspace templates"
+git push origin v1.4.0
 
-# 3. Push et
-git push origin v1.3.0
-
-# 4. GoReleaser çalıştır
-goreleaser release --clean
-
-# 5. Homebrew güncelle
-gh repo clone abdussamet032/homebrew-tap /tmp/homebrew-tap
-cp dist/homebrew/son.rb /tmp/homebrew-tap/Formula/son.rb
-cd /tmp/homebrew-tap && git add . && git commit -m "son v1.3.0" && git push
-
-# 6. Website güncelle (varsa)
-# ... guide ekle, feature ekle ...
+# 3. (varsa) Website güncelle
 cd website && npm run build && vercel --prod
 ```
 

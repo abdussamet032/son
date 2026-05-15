@@ -30,7 +30,9 @@ completions:
 	@echo "Completions generated in completions/"
 
 release:
+	GITHUB_TOKEN=$${GITHUB_TOKEN:-$$(gh auth token)} \
+	HOMEBREW_TAP_GITHUB_TOKEN=$${HOMEBREW_TAP_GITHUB_TOKEN:-$$(gh auth token)} \
 	goreleaser release --clean
 
 snapshot:
-	goreleaser release --snapshot --clean
+	HOMEBREW_TAP_GITHUB_TOKEN=dummy goreleaser release --snapshot --clean
