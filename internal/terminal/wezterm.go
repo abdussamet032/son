@@ -2,6 +2,7 @@ package terminal
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -20,64 +21,42 @@ func (t *WezTerm) Available() bool {
 
 func (t *WezTerm) Open(projectPath string, projectName string, l layout.Layout, hooks []config.HookConfig, openMode string) error {
 	// Spawn initial pane
-	out, err := exec.Command("wezterm", "cli", "spawn", "--cwd", projectPath).Output()
+	spawnArgs := []string{"cli", "spawn", "--cwd", projectPath}
+	if openMode == "new_window" {
+		spawnArgs = append(spawnArgs, "--new-window")
+	}
+	out, err := exec.Command("wezterm", spawnArgs...).Output()
 	if err != nil {
 		return fmt.Errorf("failed to spawn WezTerm pane: %w", err)
 	}
-	firstPaneID := parseWezTermPaneID(out)
+	paneIDs := []string{parseWezTermPaneID(out)}
 
-	// Run hook for first pane
-	hook0 := hookForPane(hooks, 1)
-	if hook0 != "" {
-		exec.Command("wezterm", "cli", "send-text", "--pane-id", firstPaneID, hook0+"\n").Run()
-	}
-
-	paneCount := len(l.Panes)
-
-	if paneCount >= 2 {
-		// Split right
-		out2, err := exec.Command("wezterm", "cli", "split-pane", "--right",
-			"--cwd", projectPath, "--pane-id", firstPaneID, "--percent", "50").Output()
-		if err == nil {
-			rightPaneID := parseWezTermPaneID(out2)
-			hook1 := hookForPane(hooks, 2)
-			if hook1 != "" {
-				exec.Command("wezterm", "cli", "send-text", "--pane-id", rightPaneID, hook1+"\n").Run()
+	for i, p := range l.Panes {
+		if i > 0 {
+			side := "--right"
+			if p.Dir == layout.Down {
+				side = "--bottom"
 			}
-
-			if paneCount >= 3 {
-				// Split bottom of right pane
-				out3, err := exec.Command("wezterm", "cli", "split-pane", "--bottom",
-					"--cwd", projectPath, "--pane-id", rightPaneID, "--percent", "50").Output()
-				if err == nil {
-					bottomPaneID := parseWezTermPaneID(out3)
-					hook2 := hookForPane(hooks, 3)
-					if hook2 != "" {
-						exec.Command("wezterm", "cli", "send-text", "--pane-id", bottomPaneID, hook2+"\n").Run()
-					}
-				}
+			out, err := exec.Command("wezterm", "cli", "split-pane", side,
+				"--cwd", projectPath, "--pane-id", paneIDs[p.Parent], "--percent", strconv.Itoa(p.Percent)).Output()
+			if err != nil {
+				// Later panes may split this one, so stop here.
+				fmt.Fprintf(os.Stderr, "Warning: could only create %d of %d WezTerm panes: %v\n", i, len(l.Panes), err)
+				break
 			}
+			paneIDs = append(paneIDs, parseWezTermPaneID(out))
 		}
-	}
 
-	if paneCount >= 4 {
-		// Split bottom of left pane
-		out4, err := exec.Command("wezterm", "cli", "split-pane", "--bottom",
-			"--cwd", projectPath, "--pane-id", firstPaneID, "--percent", "50").Output()
-		if err == nil {
-			bottomLeftID := parseWezTermPaneID(out4)
-			hook3 := hookForPane(hooks, 4)
-			if hook3 != "" {
-				exec.Command("wezterm", "cli", "send-text", "--pane-id", bottomLeftID, hook3+"\n").Run()
-			}
+		if hook := hookForPane(hooks, i+1); hook != "" {
+			exec.Command("wezterm", "cli", "send-text", "--pane-id", paneIDs[i], hook+"\n").Run()
 		}
 	}
 
 	// Set tab title to project name
-	exec.Command("wezterm", "cli", "set-tab-title", projectName, "--pane-id", firstPaneID).Run()
+	exec.Command("wezterm", "cli", "set-tab-title", projectName, "--pane-id", paneIDs[0]).Run()
 
 	// Activate the first pane
-	exec.Command("wezterm", "cli", "activate-pane", "--pane-id", firstPaneID).Run()
+	exec.Command("wezterm", "cli", "activate-pane", "--pane-id", paneIDs[0]).Run()
 
 	return nil
 }

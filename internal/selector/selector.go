@@ -16,7 +16,9 @@ type Result struct {
 	Index   int
 }
 
-func Select(projects []discovery.Project, cfg config.Config, entries map[string]history.Entry) (*Result, error) {
+// Select lets the user pick a project with fzf. A non-empty query is typed
+// into the search box up front.
+func Select(projects []discovery.Project, cfg config.Config, entries map[string]history.Entry, query string) (*Result, error) {
 	if len(projects) == 0 {
 		return nil, fmt.Errorf("no projects found")
 	}
@@ -55,6 +57,7 @@ func Select(projects []discovery.Project, cfg config.Config, entries map[string]
 		"--delimiter", "\t",
 		"--with-nth", "1",
 		"--ansi",
+		"--query", query,
 	)
 	cmd.Stdin = strings.NewReader(input)
 	cmd.Stderr = os.Stderr

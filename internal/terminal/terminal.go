@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/abdussamet032/son/internal/config"
 	"github.com/abdussamet032/son/internal/layout"
@@ -83,6 +84,11 @@ func hookForPane(hooks []config.HookConfig, pane int) string {
 		}
 	}
 	return ""
+}
+
+// shellQuote quotes s for POSIX shells.
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
 func hasCommand(name string) bool {

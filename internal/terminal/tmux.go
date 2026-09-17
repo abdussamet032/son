@@ -29,52 +29,39 @@ func (t *Tmux) Open(projectPath string, projectName string, l layout.Layout, hoo
 	}
 
 	// Create new session
-	newCmd := exec.Command("tmux", "new-session", "-d", "-s", sessionName, "-c", projectPath)
-	if err := newCmd.Run(); err != nil {
+	out, err := exec.Command("tmux", "new-session", "-d", "-s", sessionName, "-c", projectPath,
+		"-P", "-F", "#{pane_id}").Output()
+	if err != nil {
 		return fmt.Errorf("failed to create tmux session: %w", err)
 	}
+	paneIDs := []string{strings.TrimSpace(string(out))}
 
 	// Set window name to project name
 	exec.Command("tmux", "rename-window", "-t", sessionName, projectName).Run()
 
-	// Run hook for first pane
-	hook0 := hookForPane(hooks, 1)
-	if hook0 != "" {
-		exec.Command("tmux", "send-keys", "-t", sessionName, hook0, "Enter").Run()
-	}
-
-	paneCount := len(l.Panes)
-
-	if paneCount >= 2 {
-		// Vertical split
-		exec.Command("tmux", "split-window", "-h", "-t", sessionName, "-c", projectPath).Run()
-		hook1 := hookForPane(hooks, 2)
-		if hook1 != "" {
-			exec.Command("tmux", "send-keys", "-t", sessionName, hook1, "Enter").Run()
+	for i, p := range l.Panes {
+		if i > 0 {
+			flag := "-h"
+			if p.Dir == layout.Down {
+				flag = "-v"
+			}
+			out, err := exec.Command("tmux", "split-window", flag, "-t", paneIDs[p.Parent],
+				"-l", fmt.Sprintf("%d%%", p.Percent), "-c", projectPath, "-P", "-F", "#{pane_id}").Output()
+			if err != nil {
+				// Later panes may split this one, so stop here.
+				fmt.Fprintf(os.Stderr, "Warning: could only create %d of %d tmux panes: %v\n", i, len(l.Panes), err)
+				break
+			}
+			paneIDs = append(paneIDs, strings.TrimSpace(string(out)))
 		}
-	}
 
-	if paneCount >= 3 {
-		// Horizontal split on right pane
-		exec.Command("tmux", "split-window", "-v", "-t", sessionName, "-c", projectPath).Run()
-		hook2 := hookForPane(hooks, 3)
-		if hook2 != "" {
-			exec.Command("tmux", "send-keys", "-t", sessionName, hook2, "Enter").Run()
-		}
-	}
-
-	if paneCount >= 4 {
-		// Select first pane and split horizontally
-		exec.Command("tmux", "select-pane", "-t", sessionName+":0.0").Run()
-		exec.Command("tmux", "split-window", "-v", "-t", sessionName, "-c", projectPath).Run()
-		hook3 := hookForPane(hooks, 4)
-		if hook3 != "" {
-			exec.Command("tmux", "send-keys", "-t", sessionName, hook3, "Enter").Run()
+		if hook := hookForPane(hooks, i+1); hook != "" {
+			exec.Command("tmux", "send-keys", "-t", paneIDs[i], hook, "Enter").Run()
 		}
 	}
 
 	// Select first pane
-	exec.Command("tmux", "select-pane", "-t", sessionName+":0.0").Run()
+	exec.Command("tmux", "select-pane", "-t", paneIDs[0]).Run()
 
 	return attachSession(sessionName)
 }

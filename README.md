@@ -84,6 +84,19 @@ make install
 # Open project selector (default)
 son
 
+# Open a project directly by name (exact > prefix > substring > fuzzy)
+son api              # opens myorg/api-gateway
+son myorg/api        # match by org/repo
+son myorg            # several matches: selector opens with "myorg" typed in
+
+# Choose the number of panes (1-9)
+son api -2           # 2 panes
+son api -6 -n        # 6 panes in a new window (--same-window for the opposite)
+
+# Open the current directory, or go back to the previous project
+son .
+son -                # like cd -: skips the project you're in
+
 # List projects without selection
 son list
 
@@ -176,6 +189,17 @@ Auto-detection priority: iTerm2 (macOS) > tmux > WezTerm
 | `split` | 2 | Left + Right |
 | `3-pane` | 3 | Left + Top-Right + Bottom-Right |
 | `grid` | 4 | 2x2 grid |
+| `1`-`9` | 1-9 | Equal columns; `-N` is short for `-l N` |
+
+Panes are numbered row by row in a snake pattern, which is what `[[hooks]] pane = N` refers to:
+
+```
+3 panes    4 panes    6 panes
+1 | 2      1 | 2      1 | 2 | 3
+  | 3      4 | 3      6 | 5 | 4
+```
+
+Flags override `.son.toml`, which overrides the global config.
 
 ## Comparison
 

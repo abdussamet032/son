@@ -12,38 +12,55 @@ import (
 	"github.com/abdussamet032/son/internal/hooks"
 	"github.com/abdussamet032/son/internal/layout"
 	"github.com/abdussamet032/son/internal/ranking"
-	"github.com/abdussamet032/son/internal/selector"
 	"github.com/abdussamet032/son/internal/terminal"
 	"github.com/abdussamet032/son/internal/tui"
 	"github.com/spf13/cobra"
 )
 
 var (
-	flagTerminal string
-	flagEditor   string
-	flagLayout   string
-	flagSort     string
+	flagTerminal   string
+	flagEditor     string
+	flagLayout     string
+	flagSort       string
+	flagNewWindow  bool
+	flagSameWindow bool
 )
 
 func NewRootCmd() *cobra.Command {
 	root := &cobra.Command{
-		Use:   "son",
+		Use:   "son [project]",
 		Short: "Open the right repo in the right workspace",
 		Long: `son — Developer workspace launcher.
 
 Discovers your recent projects, lets you pick one with fuzzy search,
 and opens it in a terminal workspace with split panes, editor, and startup hooks.
 
+Give a project name to skip the picker. It matches the repo name exactly,
+then by prefix, substring, and fuzzy. If several projects match equally well,
+the picker opens with the name already typed.
+
 Supports iTerm2, tmux, and WezTerm.`,
-		SilenceUsage:  true,
-		SilenceErrors: true,
-		RunE:          runDefault,
+		Example: `  son              pick a project
+  son tgsp         open the project matching "tgsp"
+  son tgsp -2      open it with 2 panes (-1 to -9)
+  son tgsp -4 -n   open it with 4 panes in a new window
+  son org/repo     match by org and repo
+  son .            open the current directory
+  son -            reopen the last project (skips the one you're in)`,
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: completeProjects,
+		SilenceUsage:      true,
+		SilenceErrors:     true,
+		RunE:              runDefault,
 	}
 
 	root.PersistentFlags().StringVarP(&flagTerminal, "terminal", "t", "", "Terminal to use (iterm, tmux, wezterm, auto)")
 	root.PersistentFlags().StringVarP(&flagEditor, "editor", "e", "", "Editor to open (code, cursor, zed, nvim)")
-	root.PersistentFlags().StringVarP(&flagLayout, "layout", "l", "", "Pane layout (single, split, 3-pane, grid)")
+	root.PersistentFlags().StringVarP(&flagLayout, "layout", "l", "", "Pane layout (single, split, 3-pane, grid) or pane count 1-9; -N is short for -l N")
 	root.PersistentFlags().StringVarP(&flagSort, "sort", "s", "", "Sort method (frecency, mtime, alpha)")
+	root.Flags().BoolVarP(&flagNewWindow, "new-window", "n", false, "Open in a new window")
+	root.Flags().BoolVar(&flagSameWindow, "same-window", false, "Open in the current window")
+	root.MarkFlagsMutuallyExclusive("new-window", "same-window")
 
 	root.AddCommand(newInitCmd())
 	root.AddCommand(newSetupCmd())
@@ -60,6 +77,13 @@ Supports iTerm2, tmux, and WezTerm.`,
 }
 
 func runDefault(cmd *cobra.Command, args []string) error {
+	// Reject a bad layout before the picker, not after it.
+	if flagLayout != "" {
+		if _, err := layout.Parse(flagLayout); err != nil {
+			return err
+		}
+	}
+
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("config error: %w", err)
@@ -78,7 +102,12 @@ func runDefault(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("discovery error: %w", err)
 	}
 
-	if len(projects) == 0 {
+	var query string
+	if len(args) > 0 {
+		query = args[0]
+	}
+
+	if len(projects) == 0 && query == "" {
 		fmt.Println("No projects found. Check your config roots:")
 		for _, r := range cfg.Roots {
 			fmt.Printf("  %s (depth: %d)\n", r.Path, r.Depth)
@@ -97,27 +126,26 @@ func runDefault(cmd *cobra.Command, args []string) error {
 	}
 	sorted := ranking.Sort(projects, entries, sortMethod)
 
-	// Select with fzf
-	result, err := selector.Select(sorted, cfg, entries)
+	project, err := resolveProject(sorted, cfg, entries, query)
 	if err != nil {
 		return err
 	}
-	if result == nil {
+	if project == nil {
 		return nil // user cancelled
 	}
-
-	project := result.Project
 
 	// Record access
 	store.Record(project.Path)
 
+	// Resolve settings: flags beat .son.toml, which beats the global config.
+
 	// Resolve terminal
 	termName := cfg.DefaultTerminal
-	if flagTerminal != "" {
-		termName = flagTerminal
-	}
 	if project.Config != nil && project.Config.Terminal != "" {
 		termName = project.Config.Terminal
+	}
+	if flagTerminal != "" {
+		termName = flagTerminal
 	}
 
 	term, err := terminal.Get(termName)
@@ -127,13 +155,22 @@ func runDefault(cmd *cobra.Command, args []string) error {
 
 	// Resolve layout
 	layoutName := cfg.DefaultLayout
-	if flagLayout != "" {
-		layoutName = flagLayout
-	}
 	if project.Config != nil && project.Config.Layout != "" {
 		layoutName = project.Config.Layout
 	}
+	if flagLayout != "" {
+		layoutName = flagLayout
+	}
 	l := layout.Get(layoutName)
+
+	// Resolve window mode
+	openMode := cfg.OpenMode
+	if flagNewWindow {
+		openMode = "new_window"
+	}
+	if flagSameWindow {
+		openMode = "same_window"
+	}
 
 	// Resolve hooks
 	var hookList []config.HookConfig
@@ -143,11 +180,11 @@ func runDefault(cmd *cobra.Command, args []string) error {
 
 	// Resolve editor
 	editorName := cfg.DefaultEditor
-	if flagEditor != "" {
-		editorName = flagEditor
-	}
 	if project.Config != nil && project.Config.Editor != "" {
 		editorName = project.Config.Editor
+	}
+	if flagEditor != "" {
+		editorName = flagEditor
 	}
 
 	// Open editor
@@ -158,8 +195,12 @@ func runDefault(cmd *cobra.Command, args []string) error {
 	}
 
 	// Open terminal
-	fmt.Printf("Opening %s in %s (%s layout)...\n", project.Name, term.Name(), layoutName)
-	return term.Open(project.Path, project.Name, l, hookList, cfg.OpenMode)
+	panes := "panes"
+	if len(l.Panes) == 1 {
+		panes = "pane"
+	}
+	fmt.Printf("Opening %s in %s (%d %s)...\n", project.Name, term.Name(), len(l.Panes), panes)
+	return term.Open(project.Path, project.Name, l, hookList, openMode)
 }
 
 func newInitCmd() *cobra.Command {

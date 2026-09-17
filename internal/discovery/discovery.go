@@ -35,6 +35,23 @@ func Discover(roots []config.Root) ([]Project, error) {
 	return projects, nil
 }
 
+// Scan lists the projects under roots with only their names and paths filled
+// in. It skips git timestamps and .son.toml, so it is fast enough for shell
+// completion.
+func Scan(roots []config.Root) []Project {
+	var projects []Project
+	for _, root := range roots {
+		dirs, err := walkDepth(root.Path, root.Depth)
+		if err != nil {
+			continue
+		}
+		for _, dir := range dirs {
+			projects = append(projects, named(dir, root.Path))
+		}
+	}
+	return projects
+}
+
 func scanRoot(root config.Root) ([]Project, error) {
 	var projects []Project
 	rootPath := root.Path
@@ -107,7 +124,34 @@ func walkDepth(root string, depth int) ([]string, error) {
 	return dirs, nil
 }
 
+// Inspect builds a Project for a single directory, e.g. one outside the
+// configured roots. It is named after the directory.
+func Inspect(dir string) Project {
+	p, _ := inspectProject(dir, filepath.Dir(dir))
+	return p
+}
+
 func inspectProject(dir, rootPath string) (Project, error) {
+	p := named(dir, rootPath)
+
+	// Check git
+	gitDir := filepath.Join(dir, ".git")
+	if _, err := os.Stat(gitDir); err == nil {
+		p.IsGit = true
+		p.Timestamp = gitTimestamp(dir)
+	} else {
+		p.IsGit = false
+		p.Timestamp = fsTimestamp(dir)
+	}
+
+	// Load project config
+	pc, _ := config.LoadProjectConfig(dir)
+	p.Config = pc
+
+	return p, nil
+}
+
+func named(dir, rootPath string) Project {
 	rel, _ := filepath.Rel(rootPath, dir)
 	parts := strings.SplitN(rel, string(filepath.Separator), 2)
 
@@ -131,22 +175,7 @@ func inspectProject(dir, rootPath string) (Project, error) {
 	} else {
 		p.Name = repo
 	}
-
-	// Check git
-	gitDir := filepath.Join(dir, ".git")
-	if _, err := os.Stat(gitDir); err == nil {
-		p.IsGit = true
-		p.Timestamp = gitTimestamp(dir)
-	} else {
-		p.IsGit = false
-		p.Timestamp = fsTimestamp(dir)
-	}
-
-	// Load project config
-	pc, _ := config.LoadProjectConfig(dir)
-	p.Config = pc
-
-	return p, nil
+	return p
 }
 
 func gitTimestamp(dir string) time.Time {
