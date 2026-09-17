@@ -32,6 +32,7 @@ brews:
     license: "MIT"
     install: |
       bin.install "son"
+      generate_completions_from_executable(bin/"son", "completion")
     test: |
       system "#{bin}/son", "version"
     commit_author:
